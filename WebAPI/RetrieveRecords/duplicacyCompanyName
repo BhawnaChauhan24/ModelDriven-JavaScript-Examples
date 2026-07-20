@@ -1,0 +1,54 @@
+function checkDuplicateOnChange(e) {
+  var t = e.getFormContext(),
+    a = t.getAttribute("cr955_name"),
+    i = a?.getValue()?.trim(),
+    n = t.getControl("cr955_name");
+  try {
+    if (a && i) {
+      // Preserve existing uppercase letters, only capitalize first letters of words
+      var r = i.replace(/\b\w/g, function (e) {
+        return e.toUpperCase();
+      });
+      a.setValue(r);
+      i = r.trim();
+    }
+  } catch (e) {
+    console.error("Title case formatting failed:", e.message);
+  }
+  if (!i || /^[a-zA-Z0-9 .,&@()\-_'\/]*$/.test(i))
+    if ((n.clearNotification("alphaCheck"), i)) {
+      var c = t.data.entity.getId()?.replace(/[{}]/g, ""),
+        o = [
+          "<fetch top='1'>",
+          "  <entity name='cr955_company'>",
+          "    <attribute name='cr955_companyid' />",
+          "    <filter type='and'>",
+          "      <condition attribute='cr955_name' operator='eq' value='",
+          i.replace(/&/g, "&amp;"),
+          "' />",
+          "    </filter>",
+          "  </entity>",
+          "</fetch>",
+        ].join("");
+      Xrm.WebApi.retrieveMultipleRecords(
+        "cr955_company",
+        "?fetchXml=" + encodeURIComponent(o),
+      ).then(
+        function (e) {
+          if (e.entities.length > 0) {
+            var t = e.entities[0].cr955_companyid;
+            c && t.toLowerCase() === c.toLowerCase()
+              ? n.clearNotification("dupCheck")
+              : n.setNotification(
+                  "This company name already exists! Please enter a unique name",
+                  "dupCheck",
+                );
+          } else n.clearNotification("dupCheck");
+        },
+        function (e) {
+          console.error(e.message);
+        },
+      );
+    } else n.clearNotification("dupCheck");
+  else n.setNotification("Invalid characters entered.", "alphaCheck");
+}
