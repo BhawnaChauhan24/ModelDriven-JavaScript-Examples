@@ -1,0 +1,14 @@
+function ValidatePhoneNumber(e) {
+  var t = e.getFormContext(),
+    o = t.getAttribute("cr955_phonenumber"),
+    r = t.getControl("cr955_phonenumber"),
+    n = o.getValue();
+  if (n) {
+    !/^[0-9]+$/.test(n) || n.length > 10
+      ? r.setNotification(
+          "Only 10 digits are allowed. Alphabets are not allowed.",
+          "phone_error",
+        )
+      : r.clearNotification("phone_error");
+  } else r.clearNotification("phone_error");
+}
