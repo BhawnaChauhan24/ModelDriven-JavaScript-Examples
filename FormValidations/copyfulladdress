@@ -1,0 +1,92 @@
+function copyAddressFromCompany(i) {
+  var e = i.getFormContext(),
+    t = e.getAttribute("cr955_companyname");
+  if (t) {
+    var l = t.getValue();
+    if (l) {
+      var r = l[0].id.replace(/[{}]/g, ""),
+        n = e.getAttribute("cr955_pastebillingaddressfromcompany"),
+        a = !!n && n.getValue();
+      if (a) {
+        var c = hasBillingData(e);
+        if (a && c) {
+          Xrm.Navigation.openConfirmDialog(
+            {
+              text: "By clicking here, your existing billing address information will be replaced with the company’s address. Are you sure you want to proceed?",
+              title: "Confirmation",
+            },
+            { height: 200, width: 450 },
+          ).then(function (i) {
+            i.confirmed ? retrieveAndCopyAddresses(e, r, a) : n.setValue(!1);
+          });
+        } else retrieveAndCopyAddresses(e, r, a);
+      } else clearBillingFields(e);
+    }
+  }
+}
+function hasBillingData(i) {
+  var e = i.getAttribute("cr955_billingaddressline1")?.getValue(),
+    t = i.getAttribute("cr955_billingaddresline2")?.getValue(),
+    l = i.getAttribute("cr955_billingaddressline3")?.getValue(),
+    r = i.getAttribute("cr955_billingpincode")?.getValue(),
+    n = i.getAttribute("cr955_billingstate")?.getValue(),
+    a = i.getAttribute("cr955_billingcity")?.getValue();
+  return !!(e || t || l || r || n || a);
+}
+function retrieveAndCopyAddresses(i, e, t) {
+  Xrm.WebApi.retrieveRecord(
+    "cr955_company",
+    e,
+    "?$select=cr955_billingaddressline1,cr955_address,cr955_addresslinebilling3,cr955_billingpincode,cr955_BillingState,cr955_BillingCity&$expand=cr955_BillingState($select=cr955_state1id,cr955_statename),cr955_BillingCity($select=cr955_city1id,cr955_cityname)",
+  ).then(
+    function (e) {
+      t
+        ? (i
+            .getAttribute("cr955_billingaddressline1")
+            .setValue(e.cr955_billingaddressline1 || null),
+          i
+            .getAttribute("cr955_billingaddresline2")
+            .setValue(e.cr955_address || null),
+          i
+            .getAttribute("cr955_billingaddressline3")
+            .setValue(e.cr955_addresslinebilling3 || null),
+          i
+            .getAttribute("cr955_billingpincode")
+            .setValue(e.cr955_billingpincode || null),
+          (itembillingstate = {}),
+          (itembillingstate.id = e.cr955_BillingState
+            ? e.cr955_BillingState.cr955_state1id
+            : null),
+          (itembillingstate.name = e.cr955_BillingState
+            ? e.cr955_BillingState.cr955_statename
+            : null),
+          (itembillingstate.entityType = "cr955_state1"),
+          (arrbillingstate = []),
+          (arrbillingstate[0] = itembillingstate),
+          (itembillingcity = {}),
+          (itembillingcity.id = e.cr955_BillingCity
+            ? e.cr955_BillingCity.cr955_city1id
+            : null),
+          (itembillingcity.name = e.cr955_BillingCity
+            ? e.cr955_BillingCity.cr955_cityname
+            : null),
+          (itembillingcity.entityType = "cr955_city1"),
+          (arrbillingcity = []),
+          (arrbillingcity[0] = itembillingcity),
+          i.getAttribute("cr955_billingstate").setValue(arrbillingstate),
+          i.getAttribute("cr955_billingcity").setValue(arrbillingcity))
+        : clearBillingFields(i);
+    },
+    function (i) {
+      console.log("Error retrieving company addresses: " + i.message);
+    },
+  );
+}
+function clearBillingFields(i) {
+  (i.getAttribute("cr955_billingaddressline1").setValue(null),
+    i.getAttribute("cr955_billingaddresline2").setValue(null),
+    i.getAttribute("cr955_billingaddressline3").setValue(null),
+    i.getAttribute("cr955_billingpincode").setValue(null),
+    i.getAttribute("cr955_billingstate").setValue(null),
+    i.getAttribute("cr955_billingcity").setValue(null));
+}
