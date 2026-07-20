@@ -1,0 +1,26 @@
+function mergeshippingColumns(executionContext) {
+  var formContext = executionContext.getFormContext();
+
+  var parts = [];
+
+  var addressline1 = formContext
+    .getAttribute("cr955_shippingaddressline1")
+    .getValue();
+  var addressline2 = formContext
+    .getAttribute("cr955_addresslineshipping2")
+    .getValue();
+  var addressline3 = formContext
+    .getAttribute("cr955_addresslineshipping3")
+    .getValue();
+
+  if (addressline1) parts.push(addressline1);
+  if (addressline2) parts.push(addressline2);
+  if (addressline3) parts.push(addressline3);
+
+  var mergedValue = parts.join(", ");
+
+  var targetAttr = formContext.getAttribute("cr955_shippingfullinfo");
+  if (targetAttr) {
+    targetAttr.setValue(mergedValue);
+  }
+}
