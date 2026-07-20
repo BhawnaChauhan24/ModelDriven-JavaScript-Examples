@@ -1,0 +1,11 @@
+function formatPanAllowAlphanum(t) {
+  var e = t.getFormContext(),
+    a = t.getEventSource(),
+    r = a.getValue(),
+    n = e.getControl(a.getName());
+  r
+    ? /[^a-zA-Z0-9]/.test(r)
+      ? n.setNotification("Only letters and numbers are allowed", "panErr")
+      : (n.clearNotification("panErr"), a.setValue(r.toUpperCase()))
+    : n.clearNotification("panErr");
+}
